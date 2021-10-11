@@ -10,7 +10,7 @@
 </head>
 <body class="p-3 mb-2 bg-light text-black">
 <div class="container">
-    <p class="">Username: <span th:text="${login_user_name}}"></span></p>
+    <p class="">Username: <span th:text="${login_user_name}"></span></p>
     <div id="message-div" class="alert alert-info" th:if="${msg != null}">
         <span th:text="${msg}"></span>
     </div>
@@ -22,7 +22,8 @@
     <div id="contentDiv" style="clear: right;">
         <nav style="clear: right;">
             <div class="nav nav-tabs" id="nav-tab" role="tablist">
-                <a class="nav-item nav-link active" id="nav-uploadFiles-tab" data-toggle="tab" href="#nav-uploadFiles" role="tab"
+                <a class="nav-item nav-link active" id="nav-uploadFiles-tab" data-toggle="tab" href="#nav-uploadFiles"
+                   role="tab"
                    aria-controls="nav-uploadFiles" aria-selected="true">Files</a>
                 <a class="nav-item nav-link" id="nav-notes-tab" data-toggle="tab" href="#nav-notes" role="tab"
                    aria-controls="nav-notes" aria-selected="false">Notes</a>
@@ -31,7 +32,8 @@
             </div>
         </nav>
         <div class="tab-content" id="nav-tabContent">
-            <div class="tab-pane fade show active" id="nav-uploadFiles" role="tabpanel" aria-labelledby="nav-uploadFiles-tab">
+            <div class="tab-pane fade show active" id="nav-uploadFiles" role="tabpanel"
+                 aria-labelledby="nav-uploadFiles-tab">
                 <form th:action="@{/home/uploadFile}" enctype="multipart/form-data" method="POST">
                     <div class="container">
                         <div class="row" style="margin: 1em;">
@@ -39,7 +41,8 @@
                                 <label for="fileUpload">Upload a New File:</label>
                             </div>
                             <div class="col-sm-6">
-                                <input type="uploadFile" class="form-control-uploadFile" id="fileUpload" name="fileUpload">
+                                <input type="uploadFile" class="form-control-uploadFile" id="fileUpload"
+                                       name="fileUpload">
                             </div>
                             <div class="col-sm-4">
                                 <button type="submit" class="btn btn-dark">Upload</button>
@@ -87,13 +90,13 @@
                         <tbody>
                         <tr th:each="s : ${notes}">
                             <td>
-                                <a th:href="@{/home/edit-note(noteId=${s.getNoteid()})}" type="button"
+                                <a th:href="@{/home/edit-note(noteId=${s.getNoteId()})}" type="button"
                                    class="btn btn-success">Edit</a>
-                                <a th:ref="@{/home/delete-note(noteId=${s.getNoteid()})"
+                                <a th:ref="@{/home/delete-note(noteId=${s.getNoteId()})"
                                    class="btn btn-danger">Delete</a>
                             </td>
-                            <th th:text="${s.getNotetitle()}" scope="row">Example Note Title</th>
-                            <td th:text="${s.getNotedescription()}">Example Note Description</td>
+                            <th th:text="${s.getNoteTitle()}" scope="row">Example Note Title</th>
+                            <td th:text="${s.getNoteDescription()}">Example Note Description</td>
                         </tr>
                         </tbody>
                     </table>
@@ -155,8 +158,9 @@
                         <tr th:each="s: ${credentials}">
                             <td>
                                 <a type="button" class="btn btn-success"
-                                   th:href="@{/home/cred/edit(credId=${s.getCredentialid()})}">Edit</a>
-                                <a class="btn btn-danger" th:href="@{/home/cred/delete(credId=${s.getCredentialid()})}">Delete</a>
+                                   th:href="@{/home/edit-credential(credId=${s.getCredentialId()})}">Edit</a>
+                                <a class="btn btn-danger"
+                                   th:href="@{/home/delete-credential(credId=${s.getCredentialId()})}">Delete</a>
                             </td>
                             <th scope="row" th:text="${s.getUrl()}">Example Credential URL</th>
                             <td th:text="${s.getUsername()}">Example Credential Username</td>
@@ -177,7 +181,7 @@
                                 </button>
                             </div>
                             <div class="modal-body">
-                                <form th:action="@{/home/cred}" action="#" method="POST">
+                                <form th:action="@{/home/credential}" action="#" method="POST">
                                     <input type="hidden" name="credentialId" id="credential-id">
                                     <div class="form-group">
                                         <label for="note-title" class="col-form-label">URL</label>
@@ -233,6 +237,15 @@
                 $('#credential-password').val(password ? password : '');
                 $('#credentialModal').modal('show');
             }
+
+
+
+
+
+
+
+
+
 
 
 

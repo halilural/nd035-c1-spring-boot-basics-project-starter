@@ -9,9 +9,6 @@ import java.util.List;
 @Mapper
 public interface FileMapper {
 
-    @Select("SELECT * FROM FILES WHERE filename = #{fileName}")
-    UploadFile getFile(String fileName);
-
     @Select("SELECT * FROM FILES WHERE fileid = #{fileId}")
     UploadFile getFile(Integer fileId);
 

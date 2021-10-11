@@ -1,6 +1,7 @@
 package com.udacity.jwdnd.course1.cloudstorage.controller;
 
 
+import com.udacity.jwdnd.course1.cloudstorage.config.StoragePropertiesConfig;
 import com.udacity.jwdnd.course1.cloudstorage.exception.StorageException;
 import com.udacity.jwdnd.course1.cloudstorage.mapper.CredentialMapper;
 import com.udacity.jwdnd.course1.cloudstorage.mapper.FileMapper;
@@ -37,12 +38,14 @@ public class HomeController {
     private NoteMapper noteMapper;
     private CredentialMapper credentialMapper;
     private UserService userService;
+    private StoragePropertiesConfig storagePropertiesConfig;
 
-    public HomeController(FileMapper fileMapper, NoteMapper noteMapper, CredentialMapper credentialMapper, UserService userService) {
+    public HomeController(FileMapper fileMapper, NoteMapper noteMapper, CredentialMapper credentialMapper, UserService userService, StoragePropertiesConfig storagePropertiesConfig) {
         this.fileMapper = fileMapper;
         this.noteMapper = noteMapper;
         this.credentialMapper = credentialMapper;
         this.userService = userService;
+        this.storagePropertiesConfig = storagePropertiesConfig;
     }
 
     @GetMapping
@@ -108,6 +111,39 @@ public class HomeController {
         return "redirect:/home?msg=uNote";
     }
 
+    @PostMapping("/credential")
+    public String postCredential(@RequestParam String url,
+                                 @RequestParam String username,
+                                 @RequestParam String key,
+                                 @RequestParam String password,
+                                 Authentication authentication, Model model) {
+        User user = userService.getUser(authentication.getName());
+        int userId = user.getUserId();
+        int credentialSize = credentialMapper.insert(new Credential(url, username, key, password, userId));
+        return "redirect:/home?msg=aCred";
+    }
+
+    @GetMapping("/delete-credential")
+    public String deleteCredential(@RequestParam String credentialId) {
+        int credentialid = Integer.parseInt(credentialId);
+        credentialMapper.delete(credentialid);
+        return "redirect:/home?msg=dCred";
+    }
+
+    @GetMapping("/edit-credential")
+    public String editCredential(@RequestParam String credentialId, Model model) {
+        int credentialid = Integer.parseInt(credentialId);
+        Credential credential = credentialMapper.getCredential(credentialId);
+        model.addAttribute("credential", credential);
+        return "edit-credential";
+    }
+
+    @PostMapping("/update-credential")
+    public String updateCredential(@ModelAttribute("credential") Credential credential) {
+        credentialMapper.update(credential);
+        return "redirect:/home?msg=uCred";
+    }
+
     @PostMapping("/file")
     public String addFile(@RequestParam MultipartFile fileUpload, Model model, Authentication authentication) throws IOException {
         User user = userService.getUser(authentication.getName());
@@ -119,7 +155,7 @@ public class HomeController {
         }
 
         String fn = fileUpload.getOriginalFilename();
-        Path uploadDir = Paths.get("upload");
+        Path uploadDir = Paths.get(storagePropertiesConfig.getLocation());
         Path uploadPath = Paths.get(String.valueOf(uploadDir), fn);
 
         //check file exists?
@@ -168,7 +204,7 @@ public class HomeController {
     public void downloadFile(@PathVariable("filename") String filename,
                              HttpServletResponse response) throws IOException {
         try {
-            Path uploadDir = Paths.get("upload");
+            Path uploadDir = Paths.get(storagePropertiesConfig.getLocation());
             String filePath = Paths.get(String.valueOf(uploadDir), filename).toString();
             InputStream is = new FileInputStream(new File(filePath));
             IOUtils.copy(is, response.getOutputStream());
