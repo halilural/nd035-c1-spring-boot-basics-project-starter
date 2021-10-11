@@ -1,7 +1,7 @@
 # Super*Duper*Drive Cloud Storage
 You have been hired by Super*Duper*Drive, which is a brand new company aiming to make a dent in the Cloud Storage market and is already facing stiff competition from rivals like Google Drive and Dropbox. That hasn't dampened their spirits at all, however. They want to include personal information management features in their application to differentiate them from the competition, and the minimum viable product includes three user-facing features:
 
-1. **Simple File Storage:** Upload/download/remove files
+1. **Simple File Storage:** Upload/download/remove uploadFiles
 2. **Note Management:** Add/update/remove text notes
 3. **Password Management:** Save, edit, and delete website credentials.  
 
@@ -63,10 +63,10 @@ The home page is the center of the application and hosts the three required piec
 
 
  i. Files
-  - The user should be able to upload files and see any files they previously uploaded. 
+  - The user should be able to upload uploadFiles and see any uploadFiles they previously uploaded. 
 
-  - The user should be able to view/download or delete previously-uploaded files.
-  - Any errors related to file actions should be displayed. For example, a user should not be able to upload two files with the same name, but they'll never know unless you tell them!
+  - The user should be able to view/download or delete previously-uploaded uploadFiles.
+  - Any errors related to uploadFile actions should be displayed. For example, a user should not be able to upload two uploadFiles with the same name, but they'll never know unless you tell them!
 
 
  ii. Notes

@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="https://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <link rel="stylesheet" type="text/css" media="all" th:href="@{/css/bootstrap.min.css}">
+
+    <title>Edit Note</title>
+</head>
+<body class="p-3 mb-2 bg-light text-black">
+<div class="container justify-content-center w-50 p-3" style="background-color: #eeeeee; margin-top: 5em;">
+    <div class="form-group">
+        <label><a th:href="@{/home}">Back to Home Page</a></label>
+    </div>
+    <h1 class="display-5">Edit Note</h1>
+    <form action="#" th:object="${note}" th:action="@{/home/update-note}" method="POST">
+        <div class="form-row">
+            <div class="form-group col-md-6">
+                <label for="inputNoteTitle">Note Title</label>
+                <input th:field="*{noteTitle}" type="input" name="noteTitle" class="form-control" id="inputNoteTitle"
+                       placeholder="Enter Note Title" maxlength="20" required/>
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group col-md-6">
+                <label for="inputNoteDescription">Last Name</label>
+                <textarea rows="20" cols="80" th:field="*{noteDescription}" type="input" name="noteDescription"
+                          class="form-control" id="inputNoteDescription" required></textarea>
+            </div>
+        </div>
+        <button type="submit" class="btn btn-primary">Save</button>
+    </form>
+</div>
+</body>
+</html>
