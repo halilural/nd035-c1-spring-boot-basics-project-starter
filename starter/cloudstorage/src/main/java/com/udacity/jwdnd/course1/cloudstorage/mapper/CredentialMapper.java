@@ -9,8 +9,8 @@ import java.util.List;
 @Mapper
 public interface CredentialMapper {
 
-    @Select("SELECT * FROM CREDENTIALS WHERE url = #{url}")
-    Credential getCredential(String url);
+    @Select("SELECT * FROM CREDENTIALS WHERE credentialid = #{credentialId}")
+    Credential getCredential(Integer credentialId);
 
     @Insert("INSERT INTO CREDENTIALS (url, username, key, password, userid) " +
             " VALUES(#{url},#{username},#{key},#{password},#{userId})")

@@ -38,11 +38,11 @@
                     <div class="container">
                         <div class="row" style="margin: 1em;">
                             <div class="col-sm-2">
-                                <label for="fileUpload">Upload a New File:</label>
+                                <label for="file">Upload a New File:</label>
                             </div>
                             <div class="col-sm-6">
-                                <input type="uploadFile" class="form-control-uploadFile" id="fileUpload"
-                                       name="fileUpload">
+                                <input type="file" class="form-control-file" id="file"
+                                       name="file">
                             </div>
                             <div class="col-sm-4">
                                 <button type="submit" class="btn btn-dark">Upload</button>
@@ -63,10 +63,10 @@
                             <td>
                                 <a th:href="@{/home/uploadFile/delete(fileId=${f.getFileId()})}"
                                    class="btn btn-danger">Delete</a>
-                                <a th:href="@{/home/uploadFile/{fn}(fn=${f.getFilename()}) }"
+                                <a th:href="@{/home/uploadFile/{fn}(fn=${f.getFileName()}) }"
                                    class="btn btn-info">Download</a>
                             </td>
-                            <th scope="row" th:text="${f.getFilename()}">ExampleFile.txt</th>
+                            <th scope="row" th:text="${f.getFileName()}">ExampleFile.txt</th>
                         </tr>
                         </tbody>
                     </table>
@@ -92,7 +92,7 @@
                             <td>
                                 <a th:href="@{/home/edit-note(noteId=${s.getNoteId()})}" type="button"
                                    class="btn btn-success">Edit</a>
-                                <a th:ref="@{/home/delete-note(noteId=${s.getNoteId()})"
+                                <a th:href="@{/home/delete-note(noteId=${s.getNoteId()})}"
                                    class="btn btn-danger">Delete</a>
                             </td>
                             <th th:text="${s.getNoteTitle()}" scope="row">Example Note Title</th>
@@ -158,9 +158,9 @@
                         <tr th:each="s: ${credentials}">
                             <td>
                                 <a type="button" class="btn btn-success"
-                                   th:href="@{/home/edit-credential(credId=${s.getCredentialId()})}">Edit</a>
+                                   th:href="@{/home/edit-credential(credentialId=${s.getCredentialId()})}">Edit</a>
                                 <a class="btn btn-danger"
-                                   th:href="@{/home/delete-credential(credId=${s.getCredentialId()})}">Delete</a>
+                                   th:href="@{/home/delete-credential(credentialId=${s.getCredentialId()})}">Delete</a>
                             </td>
                             <th scope="row" th:text="${s.getUrl()}">Example Credential URL</th>
                             <td th:text="${s.getUsername()}">Example Credential Username</td>
@@ -237,6 +237,17 @@
                 $('#credential-password').val(password ? password : '');
                 $('#credentialModal').modal('show');
             }
+
+
+
+
+
+
+
+
+
+
+
 
 
 

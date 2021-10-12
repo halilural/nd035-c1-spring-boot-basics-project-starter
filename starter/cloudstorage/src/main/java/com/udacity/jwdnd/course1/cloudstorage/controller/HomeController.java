@@ -10,6 +10,7 @@ import com.udacity.jwdnd.course1.cloudstorage.model.entity.Credential;
 import com.udacity.jwdnd.course1.cloudstorage.model.entity.Note;
 import com.udacity.jwdnd.course1.cloudstorage.model.entity.UploadFile;
 import com.udacity.jwdnd.course1.cloudstorage.model.entity.User;
+import com.udacity.jwdnd.course1.cloudstorage.services.EncryptionService;
 import com.udacity.jwdnd.course1.cloudstorage.services.UserService;
 import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.springframework.http.MediaType;
@@ -27,6 +28,7 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.HashMap;
 import java.util.List;
 
@@ -34,13 +36,21 @@ import java.util.List;
 @RequestMapping("/home")
 public class HomeController {
 
+    private EncryptionService encryptionService;
+
     private FileMapper fileMapper;
     private NoteMapper noteMapper;
     private CredentialMapper credentialMapper;
     private UserService userService;
     private StoragePropertiesConfig storagePropertiesConfig;
 
-    public HomeController(FileMapper fileMapper, NoteMapper noteMapper, CredentialMapper credentialMapper, UserService userService, StoragePropertiesConfig storagePropertiesConfig) {
+    public HomeController(EncryptionService encryptionService,
+                          FileMapper fileMapper,
+                          NoteMapper noteMapper,
+                          CredentialMapper credentialMapper,
+                          UserService userService,
+                          StoragePropertiesConfig storagePropertiesConfig) {
+        this.encryptionService = encryptionService;
         this.fileMapper = fileMapper;
         this.noteMapper = noteMapper;
         this.credentialMapper = credentialMapper;
@@ -59,7 +69,7 @@ public class HomeController {
 
         model.addAttribute("notes", notes);
         model.addAttribute("credentials", credentials);
-        model.addAttribute("files", uploadFiles);
+        model.addAttribute("uploadFiles", uploadFiles);
 
         model.addAttribute("login_user_name", username);
 
@@ -91,14 +101,14 @@ public class HomeController {
     }
 
     @GetMapping("/delete-note")
-    public String deleteNote(@RequestParam String noteId) {
+    public String deleteNote(@RequestParam("noteId") String noteId) {
         int noteid = Integer.parseInt(noteId);
         noteMapper.delete(noteid);
         return "redirect:/home?msg=dNote";
     }
 
     @GetMapping("/edit-note")
-    public String editNote(@RequestParam String noteId, Model model) {
+    public String editNote(@RequestParam("noteId") String noteId, Model model) {
         int noteid = Integer.parseInt(noteId);
         Note note = noteMapper.getNote(noteid);
         model.addAttribute("note", note);
@@ -119,33 +129,37 @@ public class HomeController {
                                  Authentication authentication, Model model) {
         User user = userService.getUser(authentication.getName());
         int userId = user.getUserId();
-        int credentialSize = credentialMapper.insert(new Credential(url, username, key, password, userId));
+        String encryptedPassword = encryptionService.encryptValue(password, key);
+        int credentialSize = credentialMapper.insert(new Credential(url, username, key, encryptedPassword, userId));
         return "redirect:/home?msg=aCred";
     }
 
     @GetMapping("/delete-credential")
-    public String deleteCredential(@RequestParam String credentialId) {
+    public String deleteCredential(@RequestParam("credentialId") String credentialId) {
         int credentialid = Integer.parseInt(credentialId);
         credentialMapper.delete(credentialid);
         return "redirect:/home?msg=dCred";
     }
 
     @GetMapping("/edit-credential")
-    public String editCredential(@RequestParam String credentialId, Model model) {
+    public String editCredential(@RequestParam("credentialId") String credentialId, Model model) {
         int credentialid = Integer.parseInt(credentialId);
-        Credential credential = credentialMapper.getCredential(credentialId);
+        Credential credential = credentialMapper.getCredential(credentialid);
+        credential.setPassword(encryptionService.decryptValue(credential.getPassword(), credential.getKey()));
         model.addAttribute("credential", credential);
         return "edit-credential";
     }
 
     @PostMapping("/update-credential")
     public String updateCredential(@ModelAttribute("credential") Credential credential) {
+        String encryptedPassword = encryptionService.encryptValue(credential.getPassword(), credential.getKey());
+        credential.setPassword(encryptedPassword);
         credentialMapper.update(credential);
         return "redirect:/home?msg=uCred";
     }
 
-    @PostMapping("/file")
-    public String addFile(@RequestParam MultipartFile fileUpload, Model model, Authentication authentication) throws IOException {
+    @PostMapping("/uploadFile")
+    public String addFile(@RequestParam("file") MultipartFile fileUpload, Model model, Authentication authentication) throws IOException {
         User user = userService.getUser(authentication.getName());
         int userId = user.getUserId();
         if (fileUpload.isEmpty()) {
@@ -153,33 +167,29 @@ public class HomeController {
             model.addAttribute("message", "No file selected to upload!");
             return "redirect:/home?msg=noFile";
         }
-
         String fn = fileUpload.getOriginalFilename();
-        Path uploadDir = Paths.get(storagePropertiesConfig.getLocation());
+        Path uploadDir = Paths.get("./src/main/resources/upload");
+
         Path uploadPath = Paths.get(String.valueOf(uploadDir), fn);
 
-        //check file exists?
-        File f = new File(String.valueOf(uploadPath));
-        if (f.exists() && !f.isDirectory()) {
-            return "redirect:/home?msg=uploadFail";
+        try (InputStream inputStream = fileUpload.getInputStream()) {
+            Files.copy(inputStream, uploadPath,
+                    StandardCopyOption.REPLACE_EXISTING);
         }
 
-        //write file to disk
-        byte[] bytes = fileUpload.getBytes();
-        Files.write(uploadPath, bytes);
-
-        // write file info to db
-
-        String fileExt = com.google.common.io.Files.getFileExtension(fileUpload.getOriginalFilename());
+        // write file info to DB
+        String fileExt = com.google.common.io.Files.getFileExtension(fn);
         long fileSize = Files.size(uploadPath);
 
         fileMapper.addFile(new UploadFile(fn, fileExt, String.valueOf(fileSize), userId, uploadPath.toString()));
 
+        model.addAttribute("success", true);
+        model.addAttribute("message", "New File added successfully!");
         return "redirect:/home?msg=aFile";
 
     }
 
-    @GetMapping("/file/delete")
+    @GetMapping("/uploadFile/delete")
     public String deleteFile(@RequestParam("fileId") int fileId) {
 
         // delete file on hard disk
@@ -200,11 +210,11 @@ public class HomeController {
 
     }
 
-    @GetMapping(value = "/file/{filename}", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
+    @GetMapping(value = "/uploadFile/{filename}", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
     public void downloadFile(@PathVariable("filename") String filename,
                              HttpServletResponse response) throws IOException {
         try {
-            Path uploadDir = Paths.get(storagePropertiesConfig.getLocation());
+            Path uploadDir = Paths.get("./src/main/resources/upload");
             String filePath = Paths.get(String.valueOf(uploadDir), filename).toString();
             InputStream is = new FileInputStream(new File(filePath));
             IOUtils.copy(is, response.getOutputStream());

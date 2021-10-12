@@ -15,17 +15,21 @@
     </div>
     <h1 class="display-5">Edit Note</h1>
     <form action="#" th:object="${note}" th:action="@{/home/update-note}" method="POST">
+        <input type="hidden" name="userId" th:value="${note.getUserId()}">
+        <input type="hidden" name="noteId" th:value="${note.getNoteId()}">
         <div class="form-row">
             <div class="form-group col-md-6">
                 <label for="inputNoteTitle">Note Title</label>
-                <input th:field="*{noteTitle}" type="input" name="noteTitle" class="form-control" id="inputNoteTitle"
+                <input th:value="${note.getNoteTitle()}" type="input" name="noteTitle" class="form-control"
+                       id="inputNoteTitle"
                        placeholder="Enter Note Title" maxlength="20" required/>
             </div>
         </div>
         <div class="form-row">
             <div class="form-group col-md-6">
                 <label for="inputNoteDescription">Last Name</label>
-                <textarea rows="20" cols="80" th:field="*{noteDescription}" type="input" name="noteDescription"
+                <textarea rows="20" cols="80" th:text="${note.getNoteDescription()}" type="input"
+                          name="noteDescription"
                           class="form-control" id="inputNoteDescription" required></textarea>
             </div>
         </div>
