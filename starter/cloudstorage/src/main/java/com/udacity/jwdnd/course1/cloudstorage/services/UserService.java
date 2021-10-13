@@ -39,6 +39,10 @@ public class UserService {
         return userMapper.getUser(username);
     }
 
+    public Integer getUserId(String username){
+        return getUser(username).getUserId();
+    }
+
     public User getUser(Authentication authentication) {
         return userMapper.getUser(authentication.getName());
     }
