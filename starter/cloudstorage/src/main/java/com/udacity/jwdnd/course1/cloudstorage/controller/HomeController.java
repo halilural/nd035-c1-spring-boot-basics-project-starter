@@ -29,6 +29,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.security.SecureRandom;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
 
@@ -91,7 +93,7 @@ public class HomeController {
     }
 
     @PostMapping("/note")
-    public String postNotes(@RequestParam String noteTitle, @RequestParam String noteDescription, Authentication authentication, Model model) {
+    public String addNotes(@RequestParam String noteTitle, @RequestParam String noteDescription, Authentication authentication, Model model) {
         User user = userService.getUser(authentication.getName());
         int userId = user.getUserId();
         String title = noteTitle;
@@ -122,15 +124,18 @@ public class HomeController {
     }
 
     @PostMapping("/credential")
-    public String postCredential(@RequestParam String url,
-                                 @RequestParam String username,
-                                 @RequestParam String key,
-                                 @RequestParam String password,
-                                 Authentication authentication, Model model) {
+    public String addCredential(@RequestParam String url,
+                                @RequestParam String username,
+                                @RequestParam String password,
+                                Authentication authentication, Model model) {
         User user = userService.getUser(authentication.getName());
         int userId = user.getUserId();
-        String encryptedPassword = encryptionService.encryptValue(password, key);
-        int credentialSize = credentialMapper.insert(new Credential(url, username, key, encryptedPassword, userId));
+        SecureRandom random = new SecureRandom();
+        byte[] key = new byte[16];
+        random.nextBytes(key);
+        String encodedKey = Base64.getEncoder().encodeToString(key);
+        String encryptedPassword = encryptionService.encryptValue(password, encodedKey);
+        int credentialSize = credentialMapper.insert(new Credential(url, username, encodedKey, encryptedPassword, userId));
         return "redirect:/home?msg=aCred";
     }
 
