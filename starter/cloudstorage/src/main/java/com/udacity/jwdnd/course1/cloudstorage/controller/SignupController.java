@@ -3,20 +3,25 @@ package com.udacity.jwdnd.course1.cloudstorage.controller;
 
 import com.udacity.jwdnd.course1.cloudstorage.model.dto.SignupForm;
 import com.udacity.jwdnd.course1.cloudstorage.services.UserService;
+import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+
+import java.util.Locale;
 
 @Controller
 @RequestMapping("/signup")
 public class SignupController {
 
+    private MessageSource messageSource;
+
     private UserService userService;
 
-    public SignupController(UserService userService) {
+    public SignupController(MessageSource messageSource, UserService userService) {
+        this.messageSource = messageSource;
         this.userService = userService;
     }
 
@@ -29,12 +34,12 @@ public class SignupController {
     public String signUpUser(SignupForm signupForm, Model model) {
         String signupError = null;
         if (userService.isUsernameAvailable(signupForm.getUsername())) {
-            signupError = "The username already exists.";
+            signupError = messageSource.getMessage("the_username_already_exists", null, Locale.ENGLISH);
         }
         if (signupError == null) {
             int rowsAdded = userService.createUser(signupForm);
             if (rowsAdded < 0) {
-                signupError = "There was an error signing you up. Please try again.";
+                signupError = messageSource.getMessage("sign_up_error", null, Locale.ENGLISH);
             }
         }
         if (signupError == null) {

@@ -3,6 +3,7 @@ package com.udacity.jwdnd.course1.cloudstorage.services.storage;
 import com.udacity.jwdnd.course1.cloudstorage.config.StoragePropertiesConfig;
 import com.udacity.jwdnd.course1.cloudstorage.exception.StorageException;
 import com.udacity.jwdnd.course1.cloudstorage.exception.StorageFileNotFoundException;
+import org.springframework.context.MessageSource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
@@ -16,6 +17,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.Locale;
 import java.util.stream.Stream;
 
 
@@ -24,8 +26,11 @@ public class FileSystemStorageService implements StorageService {
 
     private final Path rootLocation;
 
-    public FileSystemStorageService(StoragePropertiesConfig properties) {
+    private MessageSource messageSource;
+
+    public FileSystemStorageService(StoragePropertiesConfig properties, MessageSource messageSource) {
         this.rootLocation = Paths.get(properties.getLocation());
+        this.messageSource = messageSource;
     }
 
     @Override
@@ -33,7 +38,7 @@ public class FileSystemStorageService implements StorageService {
         try {
             Files.createDirectories(rootLocation);
         } catch (IOException e) {
-            throw new StorageException("Could not initialize storage", e);
+            throw new StorageException(messageSource.getMessage("could_not_initialize_storage", null, Locale.ENGLISH), e);
         }
     }
 
@@ -43,7 +48,7 @@ public class FileSystemStorageService implements StorageService {
         try {
 
             if (file.isEmpty()) {
-                throw new StorageException("Failed to store empty file.");
+                throw new StorageException(messageSource.getMessage("empty_file_failed", null, Locale.ENGLISH));
             }
 
             // Normalise destination File Path
@@ -53,7 +58,7 @@ public class FileSystemStorageService implements StorageService {
 
             if (!destinationFile.getParent().equals(this.rootLocation.toAbsolutePath())) {
                 // This is a security check
-                throw new StorageException("Cannot store file outside current directory.");
+                throw new StorageException(messageSource.getMessage("current_dir_store_file_failed", null, Locale.ENGLISH));
             }
 
             // try-with-resources
@@ -62,7 +67,7 @@ public class FileSystemStorageService implements StorageService {
             }
 
         } catch (IOException e) {
-            throw new StorageException("Failed to store file.", e);
+            throw new StorageException(messageSource.getMessage("store_file_failed", null, Locale.ENGLISH), e);
         }
     }
 
@@ -73,7 +78,7 @@ public class FileSystemStorageService implements StorageService {
                     .filter(path -> !path.equals(this.rootLocation))
                     .map(this.rootLocation::relativize);
         } catch (IOException e) {
-            throw new StorageException("Failed to read stored files", e);
+            throw new StorageException(messageSource.getMessage("file_read_failed", null, Locale.ENGLISH), e);
         }
     }
 
@@ -90,10 +95,10 @@ public class FileSystemStorageService implements StorageService {
             if (resource.exists() || resource.isReadable()) {
                 return resource;
             } else {
-                throw new StorageFileNotFoundException("Could not read file: " + filename);
+                throw new StorageFileNotFoundException(messageSource.getMessage("file_read_failed", new Object[]{filename}, Locale.ENGLISH));
             }
         } catch (MalformedURLException e) {
-            throw new StorageFileNotFoundException("Could not read file: " + filename, e);
+            throw new StorageFileNotFoundException(messageSource.getMessage("no_file_selected_to_upload", new Object[]{filename}, Locale.ENGLISH), e);
         }
     }
 

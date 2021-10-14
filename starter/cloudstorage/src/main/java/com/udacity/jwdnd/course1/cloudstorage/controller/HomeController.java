@@ -1,7 +1,6 @@
 package com.udacity.jwdnd.course1.cloudstorage.controller;
 
 
-import com.udacity.jwdnd.course1.cloudstorage.config.StoragePropertiesConfig;
 import com.udacity.jwdnd.course1.cloudstorage.exception.AuthorizationException;
 import com.udacity.jwdnd.course1.cloudstorage.exception.StorageException;
 import com.udacity.jwdnd.course1.cloudstorage.mapper.CredentialMapper;
@@ -14,6 +13,7 @@ import com.udacity.jwdnd.course1.cloudstorage.model.entity.User;
 import com.udacity.jwdnd.course1.cloudstorage.services.EncryptionService;
 import com.udacity.jwdnd.course1.cloudstorage.services.UserService;
 import org.apache.tomcat.util.http.fileupload.IOUtils;
+import org.springframework.context.MessageSource;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
@@ -34,6 +34,7 @@ import java.security.SecureRandom;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 
 @Controller
 @RequestMapping("/home")
@@ -45,20 +46,20 @@ public class HomeController {
     private NoteMapper noteMapper;
     private CredentialMapper credentialMapper;
     private UserService userService;
-    private StoragePropertiesConfig storagePropertiesConfig;
+    private MessageSource messageSource;
 
     public HomeController(EncryptionService encryptionService,
                           FileMapper fileMapper,
                           NoteMapper noteMapper,
                           CredentialMapper credentialMapper,
                           UserService userService,
-                          StoragePropertiesConfig storagePropertiesConfig) {
+                          MessageSource messageSource) {
         this.encryptionService = encryptionService;
         this.fileMapper = fileMapper;
         this.noteMapper = noteMapper;
         this.credentialMapper = credentialMapper;
         this.userService = userService;
-        this.storagePropertiesConfig = storagePropertiesConfig;
+        this.messageSource = messageSource;
     }
 
     @GetMapping
@@ -77,19 +78,19 @@ public class HomeController {
         model.addAttribute("login_user_name", username);
 
         var messageMap = new HashMap<String, String>();
-        messageMap.put("authException", "invalid authorization");
-        messageMap.put("aCred", "credential added");
-        messageMap.put("uCred", "credential updated");
-        messageMap.put("dCred", "credential deleted");
-        messageMap.put("aNote", "note added");
-        messageMap.put("uNote", "note updated");
-        messageMap.put("dNote", "note deleted");
-        messageMap.put("aFile", "file added");
-        messageMap.put("uFile", "file updated");
-        messageMap.put("dFile", "file deleted");
-        messageMap.put("noFile", "no file to upload");
-        messageMap.put("downloadFail", "error downloading file");
-        messageMap.put("uploadFail", "error uploading file");
+        messageMap.put("authException", messageSource.getMessage("invalid_authorization", null, Locale.getDefault()));
+        messageMap.put("aCred", messageSource.getMessage("credential_added", null, Locale.getDefault()));
+        messageMap.put("uCred", messageSource.getMessage("credential_updated", null, Locale.getDefault()));
+        messageMap.put("dCred", messageSource.getMessage("credential_deleted", null, Locale.ENGLISH));
+        messageMap.put("aNote", messageSource.getMessage("note_added", null, Locale.ENGLISH));
+        messageMap.put("uNote", messageSource.getMessage("note_updated", null, Locale.ENGLISH));
+        messageMap.put("dNote", messageSource.getMessage("note_deleted", null, Locale.ENGLISH));
+        messageMap.put("aFile", messageSource.getMessage("file_added", null, Locale.ENGLISH));
+        messageMap.put("uFile", messageSource.getMessage("file_updated", null, Locale.ENGLISH));
+        messageMap.put("dFile", messageSource.getMessage("file_deleted", null, Locale.ENGLISH));
+        messageMap.put("noFile", messageSource.getMessage("no_file_to_upload", null, Locale.ENGLISH));
+        messageMap.put("downloadFail", messageSource.getMessage("error_downloading_file", null, Locale.ENGLISH));
+        messageMap.put("uploadFail", messageSource.getMessage("error_uploading_file", null, Locale.ENGLISH));
         model.addAttribute("msg", messageMap.get(msg));
         return "home";
     }
@@ -191,7 +192,7 @@ public class HomeController {
     public String addFile(@RequestParam("file") MultipartFile fileUpload, Model model, Authentication authentication) throws IOException {
         if (fileUpload.isEmpty()) {
             model.addAttribute("success", false);
-            model.addAttribute("message", "No file selected to upload!");
+            model.addAttribute("message", messageSource.getMessage("no_file_selected_to_upload", null, Locale.ENGLISH));
             return "redirect:/home?msg=noFile";
         }
         String fn = fileUpload.getOriginalFilename();
@@ -211,7 +212,7 @@ public class HomeController {
         fileMapper.addFile(new UploadFile(fn, fileExt, String.valueOf(fileSize), userService.getUserId(authentication.getName()), uploadPath.toString()));
 
         model.addAttribute("success", true);
-        model.addAttribute("message", "New File added successfully!");
+        model.addAttribute("message", messageSource.getMessage("new_file_added_successfully", null, Locale.ENGLISH));
         return "redirect:/home?msg=aFile";
 
     }
@@ -231,7 +232,7 @@ public class HomeController {
         try {
             Files.deleteIfExists(filePath);
         } catch (IOException e) {
-            throw new StorageException("File couldnt be deleted!", e);
+            throw new StorageException(messageSource.getMessage("file_could_not_be_deleted", null, Locale.ENGLISH), e);
         }
 
         fileMapper.deleteFile(fileId);
@@ -247,9 +248,9 @@ public class HomeController {
             UploadFile uploadFile = fileMapper.getFileByName(filename);
 
             if (!checkAuthorization(uploadFile.getUserId(), authentication)) {
-                throw new AuthorizationException("Yetkisiz işlem");
+                throw new AuthorizationException(messageSource.getMessage("user_does_not_have_authorization", null, Locale.ENGLISH));
             }
-            
+
             InputStream is = new FileInputStream(new File(uploadFile.getFileLocation()));
             IOUtils.copy(is, response.getOutputStream());
             String fileExt = com.google.common.io.Files.getFileExtension(uploadFile.getFileLocation());
