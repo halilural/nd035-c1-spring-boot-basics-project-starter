@@ -26,7 +26,7 @@ public class SignupController {
     }
 
     @GetMapping()
-    public String signupView(SignupForm signupForm,Model model) {
+    public String signupView(SignupForm signupForm, Model model) {
         return "signup";
     }
 
@@ -47,7 +47,7 @@ public class SignupController {
             return "redirect:/login?signupSuccess=true";
         } else {
             model.addAttribute("signupError", signupError);
-            return "redirect:/signup?signupError=true";
+            return "signup";
         }
     }
 

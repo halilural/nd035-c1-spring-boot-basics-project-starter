@@ -1,6 +1,7 @@
 package com.udacity.jwdnd.course1.cloudstorage.services;
 
 
+import com.udacity.jwdnd.course1.cloudstorage.exception.DuplicateRecordException;
 import com.udacity.jwdnd.course1.cloudstorage.exception.StorageException;
 import com.udacity.jwdnd.course1.cloudstorage.mapper.FileMapper;
 import com.udacity.jwdnd.course1.cloudstorage.model.entity.UploadFile;
@@ -44,6 +45,10 @@ public class FileService {
     public void createFile(MultipartFile fileUpload, Authentication authentication) throws IOException {
 
         String fn = fileUpload.getOriginalFilename();
+
+        if (getFile(fn) != null)
+            throw new DuplicateRecordException(messageSource.getMessage("duplicate_file_record",new Object[]{fn},Locale.ENGLISH));
+
         Path uploadDir = Paths.get("./src/main/resources/upload");
 
         Path uploadPath = Paths.get(String.valueOf(uploadDir), fn);
@@ -65,12 +70,16 @@ public class FileService {
         return fileMapper.getFile(fileId);
     }
 
+    public UploadFile getFile(String fileName) {
+        return fileMapper.getFileByName(fileName);
+    }
+
     public Integer getFileUserId(Integer fileId) {
         return getFile(fileId).getUserId();
     }
 
     public Integer getFileUserId(String fileName) {
-        return fileMapper.getFileByName(fileName).getUserId();
+        return getFile(fileName).getUserId();
     }
 
     public void deleteFile(Integer fileId) {

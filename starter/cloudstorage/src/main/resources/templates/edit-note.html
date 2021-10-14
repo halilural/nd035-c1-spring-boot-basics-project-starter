@@ -29,7 +29,7 @@
             <div class="form-group col-md-6">
                 <label for="inputNoteDescription">Last Name</label>
                 <textarea rows="20" cols="80" th:text="${note.getNoteDescription()}" type="input"
-                          name="noteDescription"
+                          name="noteDescription" maxlength="1000"
                           class="form-control" id="inputNoteDescription" required></textarea>
             </div>
         </div>

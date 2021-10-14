@@ -33,6 +33,9 @@ public class NoteService {
         int userId = user.getUserId();
         String title = noteTitle;
         String description = noteDescription;
+
+
+
         noteMapper.insert(new Note(title, description, userId));
     }
 

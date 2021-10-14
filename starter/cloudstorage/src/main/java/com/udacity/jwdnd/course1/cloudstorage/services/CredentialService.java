@@ -19,13 +19,10 @@ public class CredentialService {
 
     private CredentialMapper credentialMapper;
 
-    private UtilService utilService;
-
-    public CredentialService(UserService userService, EncryptionService encryptionService, CredentialMapper credentialMapper, UtilService utilService) {
+    public CredentialService(UserService userService, EncryptionService encryptionService, CredentialMapper credentialMapper) {
         this.userService = userService;
         this.encryptionService = encryptionService;
         this.credentialMapper = credentialMapper;
-        this.utilService = utilService;
     }
 
     public List<Credential> getCredentials(int userId) {

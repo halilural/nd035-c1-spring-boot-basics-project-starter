@@ -97,7 +97,7 @@
                             </td>
                             <td th:text="${s.getNoteTitle()}" scope="row">Example Note Title</td>
                             <td th:text="${s.getNoteDescription()}">Example Note Description</td>
-                            <td th:text="${s.getNoteId()}" type="hidden">1</td>
+                            <td style="display:none;" th:text="${s.getNoteId()}" type="hidden">1</td>
                         </tr>
                         </tbody>
                     </table>
@@ -168,8 +168,8 @@
                             <td scope="row" th:text="${s.getUrl()}">Example Credential URL</td>
                             <td th:text="${s.getUsername()}">Example Credential Username</td>
                             <td th:text="${s.getPassword()}">Example Credential Password</td>
-                            <td th:text="${s.getCredentialId()}" type="hidden">1</td>
-                            <td th:text="${s.getKey()}" type="hidden"></td>
+                            <td style="display:none;" th:text="${s.getCredentialId()}" type="hidden">1</td>
+                            <td style="display:none;" th:text="${s.getKey()}" type="hidden"></td>
                         </tr>
                         </tbody>
                     </table>
@@ -243,6 +243,7 @@
                 $('#credential-password').val(password ? password : '');
                 $('#credentialModal').modal('show');
             }
+
 
 
 

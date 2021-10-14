@@ -22,9 +22,9 @@ public class HomeService {
 
     @PostConstruct
     public void init() {
-        messageMap.put("authException", messageSource.getMessage("invalid_authorization", null, Locale.getDefault()));
-        messageMap.put("aCred", messageSource.getMessage("credential_added", null, Locale.getDefault()));
-        messageMap.put("uCred", messageSource.getMessage("credential_updated", null, Locale.getDefault()));
+        messageMap.put("authException", messageSource.getMessage("invalid_authorization", null, Locale.ENGLISH));
+        messageMap.put("aCred", messageSource.getMessage("credential_added", null, Locale.ENGLISH));
+        messageMap.put("uCred", messageSource.getMessage("credential_updated", null, Locale.ENGLISH));
         messageMap.put("dCred", messageSource.getMessage("credential_deleted", null, Locale.ENGLISH));
         messageMap.put("aNote", messageSource.getMessage("note_added", null, Locale.ENGLISH));
         messageMap.put("uNote", messageSource.getMessage("note_updated", null, Locale.ENGLISH));
@@ -33,6 +33,7 @@ public class HomeService {
         messageMap.put("uFile", messageSource.getMessage("file_updated", null, Locale.ENGLISH));
         messageMap.put("dFile", messageSource.getMessage("file_deleted", null, Locale.ENGLISH));
         messageMap.put("noFile", messageSource.getMessage("no_file_to_upload", null, Locale.ENGLISH));
+        messageMap.put("sizeFile", messageSource.getMessage("size_limit_exception", null, Locale.ENGLISH));
         messageMap.put("downloadFail", messageSource.getMessage("error_downloading_file", null, Locale.ENGLISH));
         messageMap.put("uploadFail", messageSource.getMessage("error_uploading_file", null, Locale.ENGLISH));
     }

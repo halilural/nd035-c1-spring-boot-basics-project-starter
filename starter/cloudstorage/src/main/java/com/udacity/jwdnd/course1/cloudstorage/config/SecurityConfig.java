@@ -34,15 +34,15 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
         http.formLogin()
                 .loginPage("/login")
-                .defaultSuccessUrl("/home", true)
-                .failureForwardUrl("/login?invalidUser=true")
+                .failureUrl("/login?invalidUser=true")
+                .defaultSuccessUrl("/home")
                 .permitAll();
 
         http.logout()
                 .invalidateHttpSession(true)
                 .clearAuthentication(true)
-                .logoutRequestMatcher(new AntPathRequestMatcher("/logout"))
-                .logoutSuccessUrl("/login?loggedOut=true");
+                .logoutRequestMatcher(new AntPathRequestMatcher("/logout"));
 
     }
+
 }

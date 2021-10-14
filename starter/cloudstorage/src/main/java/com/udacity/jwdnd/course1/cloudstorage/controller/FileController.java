@@ -2,6 +2,7 @@ package com.udacity.jwdnd.course1.cloudstorage.controller;
 
 
 import com.udacity.jwdnd.course1.cloudstorage.exception.AuthorizationException;
+import com.udacity.jwdnd.course1.cloudstorage.exception.DuplicateRecordException;
 import com.udacity.jwdnd.course1.cloudstorage.services.FileService;
 import com.udacity.jwdnd.course1.cloudstorage.services.UtilService;
 import org.springframework.context.MessageSource;
@@ -10,8 +11,11 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import javax.naming.SizeLimitExceededException;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Locale;
@@ -39,7 +43,19 @@ public class FileController {
             model.addAttribute("message", messageSource.getMessage("no_file_selected_to_upload", null, Locale.ENGLISH));
             return "redirect:/home?msg=noFile";
         }
-        fileService.createFile(fileUpload, authentication);
+
+        try {
+            fileService.createFile(fileUpload, authentication);
+        } catch (IOException exception) {
+            model.addAttribute("success", false);
+            model.addAttribute("message", messageSource.getMessage("error_uploading_file", null, Locale.ENGLISH));
+            return "redirect:/home?msg=noFile";
+        } catch (DuplicateRecordException exception) {
+            model.addAttribute("success", false);
+            model.addAttribute("message", exception.getLocalizedMessage());
+            return "redirect:/home?msg=noFile";
+        }
+
         model.addAttribute("success", true);
         model.addAttribute("message", messageSource.getMessage("new_file_added_successfully", null, Locale.ENGLISH));
         return "redirect:/home?msg=aFile";
@@ -68,4 +84,5 @@ public class FileController {
         }
         fileService.downloadFile(response, filename);
     }
+
 }
