@@ -14,7 +14,7 @@
         <label><a th:href="@{/home}">Back to Home Page</a></label>
     </div>
     <h1 class="display-5">Edit Note</h1>
-    <form action="#" th:object="${note}" th:action="@{/home/update-note}" method="POST">
+    <form action="#" th:object="${note}" th:action="@{/home/note/update}" method="POST">
         <input type="hidden" name="userId" th:value="${note.getUserId()}">
         <input type="hidden" name="noteId" th:value="${note.getNoteId()}">
         <div class="form-row">

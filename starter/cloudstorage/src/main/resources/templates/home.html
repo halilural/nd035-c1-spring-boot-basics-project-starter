@@ -34,7 +34,7 @@
         <div class="tab-content" id="nav-tabContent">
             <div class="tab-pane fade show active" id="nav-uploadFiles" role="tabpanel"
                  aria-labelledby="nav-uploadFiles-tab">
-                <form th:action="@{/home/uploadFile}" enctype="multipart/form-data" method="POST">
+                <form th:action="@{/home/file}" enctype="multipart/form-data" method="POST">
                     <div class="container">
                         <div class="row" style="margin: 1em;">
                             <div class="col-sm-2">
@@ -61,9 +61,9 @@
                         <tbody>
                         <tr th:each="f : ${uploadFiles}">
                             <td>
-                                <a th:href="@{/home/uploadFile/delete(fileId=${f.getFileId()})}"
+                                <a th:href="@{/home/file/delete(fileId=${f.getFileId()})}"
                                    class="btn btn-danger">Delete</a>
-                                <a th:href="@{/home/uploadFile/{fn}(fn=${f.getFileName()}) }"
+                                <a th:href="@{/home/file/{fn}(fn=${f.getFileName()}) }"
                                    class="btn btn-info">Download</a>
                             </td>
                             <th scope="row" th:text="${f.getFileName()}">ExampleFile.txt</th>
@@ -90,9 +90,9 @@
                         <tbody>
                         <tr th:each="s : ${notes}">
                             <td>
-                                <a th:href="@{/home/edit-note(noteId=${s.getNoteId()})}" type="button"
+                                <a th:href="@{/home/note/edit(noteId=${s.getNoteId()})}" type="button"
                                    class="btn btn-success">Edit</a>
-                                <a th:href="@{/home/delete-note(noteId=${s.getNoteId()})}"
+                                <a th:href="@{/home/note/delete(noteId=${s.getNoteId()})}"
                                    class="btn btn-danger">Delete</a>
                             </td>
                             <td th:text="${s.getNoteTitle()}" scope="row">Example Note Title</td>
@@ -161,9 +161,9 @@
                         <tr th:each="s: ${credentials}">
                             <td>
                                 <a type="button" class="btn btn-success"
-                                   th:href="@{/home/edit-credential(credentialId=${s.getCredentialId()})}">Edit</a>
+                                   th:href="@{/home/credential/edit(credentialId=${s.getCredentialId()})}">Edit</a>
                                 <a class="btn btn-danger"
-                                   th:href="@{/home/delete-credential(credentialId=${s.getCredentialId()})}">Delete</a>
+                                   th:href="@{/home/credential/delete(credentialId=${s.getCredentialId()})}">Delete</a>
                             </td>
                             <td scope="row" th:text="${s.getUrl()}">Example Credential URL</td>
                             <td th:text="${s.getUsername()}">Example Credential Username</td>
@@ -243,6 +243,8 @@
                 $('#credential-password').val(password ? password : '');
                 $('#credentialModal').modal('show');
             }
+
+
 
 
 
