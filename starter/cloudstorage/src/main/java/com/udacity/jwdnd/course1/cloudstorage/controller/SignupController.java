@@ -6,11 +6,7 @@ import com.udacity.jwdnd.course1.cloudstorage.services.UserService;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-
-import java.util.Locale;
+import org.springframework.web.bind.annotation.*;
 
 @Controller
 @RequestMapping("/signup")
@@ -26,29 +22,23 @@ public class SignupController {
     }
 
     @GetMapping()
-    public String signupView(SignupForm signupForm, Model model) {
+    public String signup(@ModelAttribute("signupForm") SignupForm signupForm,
+                         Model model,
+                         @RequestParam(value = "signupSuccess", required = false, defaultValue = "false") boolean sigupSuccess,
+                         @RequestParam(value = "userExist", required = false,defaultValue = "false") boolean userExist) {
+        // @ModelAttribute will instantiate SignupForm automatically and insert into model
+        model.addAttribute("signupSuccess", sigupSuccess);
+        model.addAttribute("userExist", userExist);
         return "signup";
     }
 
     @PostMapping
-    public String signUpUser(SignupForm signupForm, Model model) {
-        String signupError = null;
+    public String signUpUser(@ModelAttribute("signupForm") SignupForm signupForm, Model model) {
         if (userService.isUsernameAvailable(signupForm.getUsername())) {
-            signupError = messageSource.getMessage("the_username_already_exists", null, Locale.ENGLISH);
+            return "redirect:/signup?userExist=true";
         }
-        if (signupError == null) {
-            int rowsAdded = userService.createUser(signupForm);
-            if (rowsAdded < 0) {
-                signupError = messageSource.getMessage("sign_up_error", null, Locale.ENGLISH);
-            }
-        }
-        if (signupError == null) {
-            model.addAttribute("signupSuccess", true);
-            return "redirect:/login?signupSuccess=true";
-        } else {
-            model.addAttribute("signupError", signupError);
-            return "signup";
-        }
+        int rowsAdded = userService.createUser(signupForm);
+        return "redirect:/login?signupSuccess=true";
     }
 
 }

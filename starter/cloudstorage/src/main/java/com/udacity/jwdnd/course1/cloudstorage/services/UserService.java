@@ -27,6 +27,8 @@ public class UserService {
     }
 
     public int createUser(SignupForm signupForm) {
+        if (isUsernameAvailable(signupForm.getUsername()))
+            return -1;
         SecureRandom random = new SecureRandom();
         byte[] salt = new byte[16];
         random.nextBytes(salt);
@@ -39,12 +41,18 @@ public class UserService {
         return userMapper.getUser(username);
     }
 
-    public Integer getUserId(String username){
+    public Integer getUserId(String username) {
         return getUser(username).getUserId();
     }
 
     public User getUser(Authentication authentication) {
         return userMapper.getUser(authentication.getName());
+    }
+
+    public void deleteUser(String username) {
+        if (getUser(username) == null)
+            return;
+        userMapper.delete(getUser(username).getUserId());
     }
 
 }

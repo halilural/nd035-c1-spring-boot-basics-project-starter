@@ -212,7 +212,8 @@ public class HomePage {
                 note.setNoteTitle(cellText);
             } else if (i == 2) {
                 note.setNoteDescription(cellText);
-            }
+            } else if (i == 3)
+                note.setNoteId(Integer.parseInt(cellText));
         }
         return note;
     }

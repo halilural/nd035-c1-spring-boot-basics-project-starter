@@ -1,9 +1,12 @@
 package com.udacity.jwdnd.course1.cloudstorage;
 
 
+import com.udacity.jwdnd.course1.cloudstorage.model.dto.SignupForm;
 import com.udacity.jwdnd.course1.cloudstorage.model.entity.Credential;
 import com.udacity.jwdnd.course1.cloudstorage.model.entity.Note;
 import com.udacity.jwdnd.course1.cloudstorage.services.EncryptionService;
+import com.udacity.jwdnd.course1.cloudstorage.services.NoteService;
+import com.udacity.jwdnd.course1.cloudstorage.services.UserService;
 import io.github.bonigarcia.wdm.WebDriverManager;
 import org.junit.jupiter.api.*;
 import org.openqa.selenium.WebDriver;
@@ -12,16 +15,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.web.server.LocalServerPort;
 
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class UserTestingApplicationTests {
 
     private static final String LOGIN_PAGE = "login";
     private static final String SIGNUP_PAGE = "signup";
     private static final String HOME_PAGE = "home";
-    private static final String HOME_EDIT_NOTE_PAGE = HOME_PAGE + "/edit-note";
-    private static final String HOME_EDIT_CREDENTIAL_PAGE = HOME_PAGE + "/edit-credential";
+    private static final String HOME_EDIT_NOTE_PAGE = HOME_PAGE + "/note/edit";
+    private static final String HOME_EDIT_CREDENTIAL_PAGE = HOME_PAGE + "/credential/edit";
     private static final String USERNAME = "halilural";
     private static final String PASSWORD = "123456";
 
@@ -33,6 +38,12 @@ public class UserTestingApplicationTests {
     @Autowired
     private EncryptionService encryptionService;
 
+    @Autowired
+    private UserService userService;
+
+    @Autowired
+    private NoteService noteService;
+
     @BeforeAll
     public static void beforeAll() {
         WebDriverManager.chromedriver().setup();
@@ -42,6 +53,17 @@ public class UserTestingApplicationTests {
     public void beforeEach() {
         this.driver = new ChromeDriver();
         driver.manage().timeouts().implicitlyWait(3, TimeUnit.SECONDS);
+        userService.createUser(new SignupForm(USERNAME, PASSWORD, "halil", "ural"));
+    }
+
+    @AfterEach
+    public void afterEach() {
+        driver.quit();
+    }
+
+    @AfterAll
+    public static void afterAll() {
+        driver.quit();
     }
 
     /**
@@ -49,11 +71,8 @@ public class UserTestingApplicationTests {
      * verifies that the home page is accessible, logs out, and verifies that the home page is no longer accessible.
      */
     @Test
+    @Order(2)
     public void testAuthorizedAccess() {
-
-        // First, sign up user
-
-        signUp();
 
         // log in
 
@@ -73,7 +92,7 @@ public class UserTestingApplicationTests {
 
         HomePage homePage2 = getHomePage();
 
-        Assertions.assertEquals("Home", driver.getTitle());
+        Assertions.assertEquals("Login", driver.getTitle());
 
     }
 
@@ -81,6 +100,7 @@ public class UserTestingApplicationTests {
      * Write a test that verifies that an unauthorized user can only access the login and signup pages.
      */
     @Test
+    @Order(1)
     public void testUnAuthorizedAccess() {
 
         // Access home page without authentication
@@ -101,12 +121,11 @@ public class UserTestingApplicationTests {
      **/
 
     @Test
+    @Order(3)
     public void testCreateNote() {
 
         String noteTitle = "test";
         String noteDescription = "I'm the one";
-
-        signUp();
 
         login();
 
@@ -115,35 +134,29 @@ public class UserTestingApplicationTests {
     }
 
     @Test
+    @Order(4)
     public void testEditNote() {
 
         String noteTitle = "test";
         String oldNoteDescription = "I'm the one";
         String newNoteDescription = "I was changed";
 
-        signUp();
-
         login();
 
-        String noteId = createNote(noteTitle, oldNoteDescription);
-
-        editNote(noteId, noteTitle, newNoteDescription);
+        editNote(noteTitle, oldNoteDescription, newNoteDescription);
 
     }
 
     @Test
+    @Order(5)
     public void testDeleteNote() {
 
         String noteTitle = "test";
-        String noteDescription = "I'm the one";
-
-        signUp();
+        String noteDescription = "I was changed";
 
         login();
 
-        String id = createNote(noteTitle, noteDescription);
-
-        deleteNote(id);
+        deleteNote(noteTitle, noteDescription);
 
     }
 
@@ -152,13 +165,12 @@ public class UserTestingApplicationTests {
      */
 
     @Test
+    @Order(6)
     public void testCreateCredential() {
 
         String url = "https://api.google.com";
         String username = "halilural";
         String password = "123456";
-
-        signUp();
 
         login();
 
@@ -167,6 +179,7 @@ public class UserTestingApplicationTests {
     }
 
     @Test
+    @Order(7)
     public void testEditCredential() {
 
         String url = "https://api.google.com";
@@ -174,30 +187,23 @@ public class UserTestingApplicationTests {
         String password = "123456";
         String newPassword = "1234567";
 
-        signUp();
-
         login();
 
-        String id = createCredential(url, username, password);
-
-        editCredential(id, url, username, newPassword);
+        editCredential(url, username, newPassword);
 
     }
 
     @Test
+    @Order(8)
     public void testDeleteCredential() {
 
         String url = "https://api.google.com";
         String username = "halilural";
         String password = "123456";
 
-        signUp();
-
         login();
 
-        String id = createCredential(url, username, password);
-
-        deleteCredential(id);
+        deleteCredential(url, username);
 
     }
 
@@ -220,23 +226,31 @@ public class UserTestingApplicationTests {
 
         homePage.openAddModal(HomePage.HomePageTab.CREDENTIAL);
 
-        // Add Note
+        // Add
 
         homePage.add(HomePage.HomePageTab.CREDENTIAL, url, username, password);
 
-        // Check Note
+        // Check
 
-        Credential credential = (Credential) homePage.getRowValues(HomePage.HomePageTab.CREDENTIAL).get(0);
+        List<Credential> credentials = homePage.getRowValues(HomePage.HomePageTab.CREDENTIAL);
 
-        Assertions.assertEquals(1, homePage.getRowValues(HomePage.HomePageTab.CREDENTIAL).size());
+        Credential createdCredential = null;
 
-        Assertions.assertEquals(password, encryptionService.decryptValue(credential.getPassword(), credential.getKey()));
+        for (Credential credential : credentials) {
+            if (credential.getUrl().equals(url) &&
+                    credential.getUsername().equals(username))
+                createdCredential = credential;
+        }
 
-        return credential.getCredentialId().toString();
+        Assertions.assertNotNull(createdCredential);
+
+        Assertions.assertEquals(password, encryptionService.decryptValue(createdCredential.getPassword(), createdCredential.getKey()));
+
+        return createdCredential.getCredentialId().toString();
 
     }
 
-    private void editCredential(String id, String url, String username, String newPassword) {
+    private void editCredential(String url, String username, String newPassword) {
 
         HomePage homePage = getHomePage();
 
@@ -246,11 +260,24 @@ public class UserTestingApplicationTests {
 
         homePage.navigateToTab(HomePage.HomePageTab.CREDENTIAL);
 
+        List<Credential> credentials = homePage.getRowValues(HomePage.HomePageTab.CREDENTIAL);
+
+        Credential createdCredential = null;
+
+        for (Credential credential : credentials) {
+            if (credential.getUrl().equals(url) && credential.getUsername().equals(username))
+                createdCredential = credential;
+        }
+
+        Assertions.assertNotNull(createdCredential);
+
+        String credentialId = createdCredential.getCredentialId().toString();
+
         // Open Edit Page
 
-        homePage.navigateToEditPage(HomePage.HomePageTab.CREDENTIAL, id);
+        homePage.navigateToEditPage(HomePage.HomePageTab.CREDENTIAL, credentialId);
 
-        EditCredentialPage editNotePage = getEditCredentialPage(id);
+        EditCredentialPage editNotePage = getEditCredentialPage(credentialId);
 
         Assertions.assertEquals("Edit Credential", driver.getTitle());
 
@@ -260,14 +287,23 @@ public class UserTestingApplicationTests {
 
         Assertions.assertEquals("Home", driver.getTitle());
 
-        Credential credential = (Credential) homePage.getRowValues(HomePage.HomePageTab.CREDENTIAL).get(0);
+        credentials = homePage.getRowValues(HomePage.HomePageTab.CREDENTIAL);
 
-        Assertions.assertEquals(newPassword, encryptionService.decryptValue(credential.getPassword(), credential.getKey()));
+        Credential updatedCredential = null;
+
+        for (Credential credential : credentials) {
+            if (credential.getUrl().equals(url) && credential.getUsername().equals(username))
+                updatedCredential = credential;
+        }
+
+        Assertions.assertNotNull(updatedCredential);
+
+        Assertions.assertEquals(newPassword, encryptionService.decryptValue(updatedCredential.getPassword(), updatedCredential.getKey()));
 
     }
 
 
-    private void deleteCredential(String id) {
+    private void deleteCredential(String url, String username) {
 
         HomePage homePage = getHomePage();
 
@@ -277,11 +313,33 @@ public class UserTestingApplicationTests {
 
         homePage.navigateToTab(HomePage.HomePageTab.CREDENTIAL);
 
+        List<Credential> credentials = homePage.getRowValues(HomePage.HomePageTab.CREDENTIAL);
+
+        Credential createdCredential = null;
+
+        for (Credential credential : credentials) {
+            if (credential.getUrl().equals(url) && credential.getUsername().equals(username))
+                createdCredential = credential;
+        }
+
+        Assertions.assertNotNull(createdCredential);
+
+        String credentialId = createdCredential.getCredentialId().toString();
+
         // Delete
 
-        homePage.delete(HomePage.HomePageTab.CREDENTIAL, id);
+        homePage.delete(HomePage.HomePageTab.CREDENTIAL, credentialId);
 
-        Assertions.assertEquals(0, homePage.getRowValues(HomePage.HomePageTab.CREDENTIAL).size());
+        boolean isFound = false;
+
+        credentials = homePage.getRowValues(HomePage.HomePageTab.CREDENTIAL);
+
+        for (Credential credential : credentials) {
+            if (credential.getUrl().equals(url) && credential.getUsername().equals(username))
+                isFound = true;
+        }
+
+        Assertions.assertEquals(false, isFound);
 
     }
 
@@ -306,15 +364,22 @@ public class UserTestingApplicationTests {
 
         // Check Note
 
-        Note note = (Note) homePage.getRowValues(HomePage.HomePageTab.NOTE).get(0);
+        List<Note> notes = homePage.getRowValues(HomePage.HomePageTab.NOTE);
 
-        Assertions.assertEquals(1, homePage.getRowValues(HomePage.HomePageTab.NOTE).size());
+        Note createdNote = null;
 
-        return note.getNoteId().toString();
+        for (Note note : notes) {
+            if (note.getNoteTitle().equals(noteTitle) && note.getNoteDescription().equals(noteDescription))
+                createdNote = note;
+        }
+
+        Assertions.assertNotNull(createdNote);
+
+        return createdNote.getNoteId().toString();
 
     }
 
-    private void editNote(String noteId, String noteTitle, String noteDescription) {
+    private void editNote(String noteTitle, String oldNoteDescription, String noteDescription) {
 
         HomePage homePage = getHomePage();
 
@@ -323,6 +388,19 @@ public class UserTestingApplicationTests {
         // Nav to the note tab
 
         homePage.navigateToTab(HomePage.HomePageTab.NOTE);
+
+        List<Note> notes = homePage.getRowValues(HomePage.HomePageTab.NOTE);
+
+        Note createdNote = null;
+
+        for (Note note : notes) {
+            if (note.getNoteTitle().equals(noteTitle) && note.getNoteDescription().equals(oldNoteDescription))
+                createdNote = note;
+        }
+
+        Assertions.assertNotNull(createdNote);
+
+        String noteId = createdNote.getNoteId().toString();
 
         // Open Edit Note Page
 
@@ -338,13 +416,22 @@ public class UserTestingApplicationTests {
 
         Assertions.assertEquals("Home", driver.getTitle());
 
-        Note note = (Note) homePage.getRowValues(HomePage.HomePageTab.NOTE).get(0);
+        notes = homePage.getRowValues(HomePage.HomePageTab.NOTE);
 
-        Assertions.assertEquals(noteDescription, note.getNoteDescription());
+        Note editedNote = null;
+
+        for (Note note : notes) {
+            if (note.getNoteTitle().equals(noteTitle) && note.getNoteDescription().equals(noteDescription))
+                editedNote = note;
+        }
+
+        Assertions.assertNotNull(editedNote);
+
+        Assertions.assertEquals(noteDescription, editedNote.getNoteDescription());
 
     }
 
-    private void deleteNote(String id) {
+    private void deleteNote(String noteTitle, String noteDescription) {
 
         HomePage homePage = getHomePage();
 
@@ -356,9 +443,31 @@ public class UserTestingApplicationTests {
 
         // Delete Note Page
 
-        homePage.delete(HomePage.HomePageTab.NOTE, id);
+        List<Note> notes = homePage.getRowValues(HomePage.HomePageTab.NOTE);
 
-        Assertions.assertEquals(0, homePage.getRowValues(HomePage.HomePageTab.NOTE).size());
+        Note createdNote = null;
+
+        for (Note note : notes) {
+            if (note.getNoteTitle().equals(noteTitle) && note.getNoteDescription().equals(noteDescription))
+                createdNote = note;
+        }
+
+        Assertions.assertNotNull(createdNote);
+
+        String noteId = createdNote.getNoteId().toString();
+
+        homePage.delete(HomePage.HomePageTab.NOTE, noteId);
+
+        boolean isFound = false;
+
+        notes = homePage.getRowValues(HomePage.HomePageTab.NOTE);
+
+        for (Note note : notes) {
+            if (note.getNoteTitle().equals(noteTitle) && note.getNoteDescription().equals(noteDescription))
+                isFound = true;
+        }
+
+        Assertions.assertEquals(false, isFound);
 
     }
 
@@ -399,11 +508,6 @@ public class UserTestingApplicationTests {
     private HomePage getHomePage() {
         driver.get("http://localhost:" + port + "/" + HOME_PAGE);
         return new HomePage(driver);
-    }
-
-    @AfterAll
-    public static void afterAll() {
-        driver.quit();
     }
 
 }
